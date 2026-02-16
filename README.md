@@ -2,13 +2,15 @@
 
 ## 📌 Описание проекта
 
-Этот проект реализует набор инструментов для анализа финансовых данных:  
-- получение валютных курсов и цен акций  
-- анализ cashback по категориям  
-- расчет инвестиционного банка  
-- формирование аналитических отчетов с помощью pandas  
-- генерация JSON-ответов (FastAPI)  
-- покрытие кода тестами и статическая типизация  
+Проект реализует инструменты для анализа финансовых данных и генерации отчетов:  
+
+- Загрузка и обработка транзакций из Excel (`data/operations.xlsx`)  
+- Анализ расходов по категориям и дням недели  
+- Подсчет cashback по категориям  
+- Расчет инвестиций (округления на инвесткопилку)  
+- Генерация аналитических отчетов с помощью `pandas`  
+- Формирование JSON-ответов для веб-интерфейса  
+- Покрытие кода тестами (`pytest`) и статическая типизация (`mypy`)  
 
 Проект выполнен в рамках курсовой работы по Python.
 
@@ -19,48 +21,83 @@
 course_paper_1/
 │
 ├── src/
-│ ├── services.py # Бизнес-логика (курсы валют, акции, cashback, инвестиции)
-│ ├── reports.py # Аналитические отчеты (pandas)
-│ ├── views.py # JSON-ответы (FastAPI)
-│ └── main.py # Точка входа (опционально)
+│ ├── utils.py # Вспомогательные функции (загрузка данных, фильтры)
+│ ├── services.py # Бизнес-логика (cashback, инвестиции)
+│ ├── reports.py # Аналитические отчеты (расходы по категориям/дням недели)
+│ ├── views.py # JSON-ответы для интерфейса
+│ 
+│
+├── data/
+│ └── operations.xlsx # Исходные финансовые данные
 │
 ├── tests/
 │ ├── test_services.py
 │ ├── test_reports.py
 │ └── test_views.py
 │
-├── pyproject.toml # Poetry конфигурация
+├── user_settings.json # Настройки пользователя (путь для отчетов, тема, язык и др.)
+├── pyproject.toml, poetry lock # Конфигурация Poetry
 ├── README.md
 └── .venv/ # Виртуальное окружение
+ ---.gitinore
+ --- check_code.py
 
 
 ## ⚙️ Используемые технологии
 
-- Python 3.13
-- Poetry (управление зависимостями)
-- pytest (тестирование)
-- mypy (статическая типизация)
-- pandas (анализ данных)
-- FastAPI (JSON API)
+- Python 3.13  
+- Poetry (управление зависимостями)  
+- pandas (анализ данных)  
+- pytest (тестирование)  
+- mypy (статическая типизация)  
+- FastAPI (формирование JSON-ответов, веб-интерфейс)  
 
-## 📊 Пример функционала
-Анализ cashback
-cashback_analysis([100, 200, 300])
+## 📊 Примеры функционала
 
-Инвестиционный банк
-investment_bank([100, 200, 300])
+### Анализ расходов по категории
 
-Отчеты pandas
+```python
+from src.reports import spending_by_category
+from src.utils import load_operations
 
-расходы по категориям
-расходы по дням недели
+df = load_operations()
+result = spending_by_category(df, "Супермаркеты")
+print(result)
 
-🌐 FastAPI JSON Response
-from src.views import generate_json_response
-generate_json_response({"test": 123})
+ -- Средние траты по дням недели
+from src.reports import spending_by_weekday
 
-📌 Результаты тестирования
+result = spending_by_weekday(df)
+print(result)
 
-Все тесты успешно пройдены:
+ -- Анализ cashback
+from src.services import cashback_analysis
 
-7 passed in 0.48s
+cashback = cashback_analysis("2021-10-01", "2021-12-31")
+print(cashback)
+
+ --  Инвестиционный банк
+from src.services import investment_analysis
+
+invested = investment_analysis("2021-10-01", "2021-12-31")
+print(invested)
+
+ -- JSON-ответ для веб-интерфейса
+from src.views import main_page, events_page, weekday_page
+
+print(main_page())
+print(events_page())
+print(weekday_page())
+
+** функции events_page и weekday_page используют фильтр за последние 3 месяца от переданной даты. 
+Если данных за этот период нет, результат будет пустым.
+
+ -- Проверка работы и тесты
+
+Запуск тестов:
+
+poetry run pytest -v tests/
+
+Пример успешного вывода: 7 passed, 0 failed, 4 warnings in 1.49s
+
+Проверка кода и работы функций: poetry run python check_code.py

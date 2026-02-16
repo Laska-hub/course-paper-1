@@ -1,37 +1,19 @@
-# tests/test_reports.py
-
-from datetime import datetime
-
-import pandas as pd
-
-from src.reports import expenses_by_category, expenses_by_weekday
+from src.reports import spending_by_category, spending_by_weekday
+from src.utils import load_operations
 
 
-def test_expenses_by_category_structure() -> None:
-    df = pd.DataFrame(
-        {
-            "Дата операции": ["2026-01-01", "2026-01-02"],
-            "Сумма операции": [100, 200],
-            "Категория": ["Food", "Food"],
-        }
-    )
-    date = datetime.strptime("2026-01-03", "%Y-%m-%d")
-    result = expenses_by_category(df, "Food", date)
+def test_spending_by_category_real() -> None:
+    df = load_operations()
+    category = df["Категория"].dropna().iloc[0]
 
-    assert isinstance(result, dict)
-    assert "total" in result
+    result = spending_by_category(df, category)
+    assert not result.empty
 
 
-def test_expenses_by_weekday_structure() -> None:
-    df = pd.DataFrame(
-        {
-            "Дата операции": ["2026-01-01", "2026-01-02"],
-            "Сумма операции": [100, 200],
-            "Категория": ["Food", "Food"],
-        }
-    )
+def test_spending_by_weekday_real() -> None:
+    df = load_operations()
 
-    result = expenses_by_weekday(df)
-
-    assert isinstance(result, dict)
-    assert "Monday" in result
+    result = spending_by_weekday(df)
+    # разбиваем длинную строку на несколько строк
+    assert "weekday" in result.columns and "Сумма операции" in result.columns
+    assert not result.empty

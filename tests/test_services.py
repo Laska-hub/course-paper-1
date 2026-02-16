@@ -1,36 +1,32 @@
-from src.services import (
-    cashback_analysis,
-    get_currency_rates,
-    get_stock_prices,
-    investment_bank,
-)
+from typing import List, Dict
+
+from src.services import cashback_analysis, investment_bank
 
 
-def test_get_currency_rates() -> None:
-    rates = get_currency_rates()
-    assert "USD" in rates
-
-
-def test_get_stock_prices() -> None:
-    prices = get_stock_prices("AAPL")
-    assert "AAPL" in prices
-
-
-def test_cashback_analysis() -> None:
-    dummy_transactions = [
-        {"amount": 100, "cashback": 1.5},
-        {"amount": 200, "cashback": 3.0},
+def test_cashback_analysis_real() -> None:
+    """Тестирование функции cashback_analysis."""
+    sample_data: List[Dict[str, float]] = [
+        {"Категория": 1.0, "Кэшбэк": 1.0},
+        {"Категория": 1.0, "Кэшбэк": 2.0},
+        {"Категория": 2.0, "Кэшбэк": 3.0},
     ]
-    result = cashback_analysis(dummy_transactions)
-    assert isinstance(result, float)
-    assert result > 0
+
+    result = cashback_analysis(sample_data)
+
+    assert isinstance(result, dict)
+    assert result["1.0"] == 3.0
+    assert result["2.0"] == 3.0
 
 
-def test_investment_bank() -> None:
-    dummy_transactions = [
-        {"amount": 100, "cashback": 1.5},
-        {"amount": 200, "cashback": 3.0},
+def test_investment_analysis_real() -> None:
+    """Тестирование функции investment_bank."""
+    sample_data: List[Dict[str, float]] = [
+        {"Округление на инвесткопилку": 0.5},
+        {"Округление на инвесткопилку": 1.2},
+        {"Округление на инвесткопилку": 0.3},
     ]
-    result = investment_bank(dummy_transactions)
-    assert isinstance(result, float)
-    assert result == 300
+
+    total = investment_bank(sample_data)
+
+    assert isinstance(total, float)
+    assert total == 2.0
