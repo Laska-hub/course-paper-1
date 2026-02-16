@@ -1,7 +1,8 @@
-from functools import wraps
-import pandas as pd
 from datetime import datetime
-from typing import Callable, Any, Dict
+from functools import wraps
+from typing import Any, Callable, Dict
+
+import pandas as pd
 
 
 def save_report(filename_func: Callable[..., str]):

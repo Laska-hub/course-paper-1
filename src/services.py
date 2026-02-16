@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 
 def cashback_analysis(transactions: List[Dict[str, Any]]) -> float:

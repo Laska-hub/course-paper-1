@@ -1,12 +1,12 @@
 from typing import Any, Dict
 
-from src.views import generate_json_response
 from src.services import (
-    get_stock_prices,
-    get_currency_rates,
     cashback_analysis,
+    get_currency_rates,
+    get_stock_prices,
     investment_bank,
 )
+from src.views import generate_json_response
 
 
 def main() -> None:

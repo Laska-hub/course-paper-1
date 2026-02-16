@@ -1,7 +1,7 @@
 from src.services import (
+    cashback_analysis,
     get_currency_rates,
     get_stock_prices,
-    cashback_analysis,
     investment_bank,
 )
 
