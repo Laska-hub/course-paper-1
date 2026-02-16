@@ -1,27 +1,45 @@
-from typing import Any, Dict, List
+from datetime import datetime
+from typing import Dict
+
+from src.data_loader import load_operations
 
 
-def cashback_analysis(transactions: List[Dict[str, Any]]) -> float:
-    """Суммирует суммы кэшбэка"""
-    total: float = 0.0
-    for t in transactions:
-        total += float(t.get("cashback", 0))
-    return total
+def _filter_by_period(df, date_from: str, date_to: str):
+    """Фильтрация по периоду."""
+    start = datetime.strptime(date_from, "%Y-%m-%d")
+    end = datetime.strptime(date_to, "%Y-%m-%d")
+
+    return df[(df["Дата операции"] >= start) & (df["Дата операции"] <= end)]
 
 
-def investment_bank(transactions: List[Dict[str, Any]]) -> float:
-    """Суммирует все инвестиции"""
-    total_invested: float = sum(
-        float(t.get("amount", 0)) for t in transactions
+def cashback_analysis(date_from: str, date_to: str) -> Dict[str, float]:
+    """
+    Возвращает сумму кэшбэка по категориям за период.
+    """
+    df = load_operations()
+
+    df = df[df["Статус"] == "OK"]
+    df = df[df["Сумма операции"] < 0]  # только расходы
+    df = _filter_by_period(df, date_from, date_to)
+
+    result = (
+        df.groupby("Категория")["Бонусы (включая кэшбэк)"]
+        .sum()
+        .to_dict()
     )
-    return total_invested
+
+    return result
 
 
-def get_currency_rates(base: str = "USD") -> Dict[str, float]:
-    """Пример заглушки валютных курсов"""
-    return {"USD": 1.0, "EUR": 0.95, "JPY": 145.0}
+def investment_analysis(date_from: str, date_to: str) -> float:
+    """
+    Считает сумму округлений за период.
+    """
+    df = load_operations()
 
+    df = df[df["Статус"] == "OK"]
+    df = _filter_by_period(df, date_from, date_to)
 
-def get_stock_prices(symbol: str) -> Dict[str, float]:
-    """Пример заглушки цен акций"""
-    return {"AAPL": 175.0, "GOOGL": 2800.0}
+    total = df["Округление на инвесткопилку"].sum()
+
+    return float(total)
