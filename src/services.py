@@ -1,19 +1,39 @@
-from typing import List, Dict
+from typing import Dict, List
 
 
-def cashback_analysis(operations: List[Dict[str, float]]) -> Dict[str, float]:
-    """Считает cashback по категориям"""
+def calculate_cashback(transactions: List[Dict]) -> Dict[str, float]:
+    """Считает кешбэк по категориям"""
     cashback_dict: Dict[str, float] = {}
-    for op in operations:
-        category = str(op["Категория"])
-        amount = float(op.get("Кэшбэк", 0.0))
-        cashback_dict[category] = cashback_dict.get(category, 0.0) + amount
+    for tx in transactions:
+        category = tx.get("category", "Другое")
+        amount = float(tx.get("amount", 0))
+        cashback = amount * 0.01  # 1% cashback
+        cashback_dict[category] = cashback_dict.get(category, 0) + cashback
     return cashback_dict
 
 
-def investment_bank(operations: List[Dict[str, float]]) -> float:
-    """Считает сумму округлений на инвесткопилку"""
-    total: float = 0.0
-    for op in operations:
-        total += float(op.get("Округление на инвесткопилку", 0.0))
+def investment_bank(
+    transactions: List[Dict], months: int, monthly_income: float
+) -> float:
+    """Считает накопления в банке за месяцы с учётом транзакций"""
+    total: float = months * monthly_income
+    for tx in transactions:
+        amount = float(tx.get("amount", 0))
+        total += amount  # расходы отрицательные, пополнения положительные
     return total
+
+
+def search_phone_numbers(transactions: List[Dict], phone: str) -> List[Dict]:
+    """Ищет транзакции по номеру телефона"""
+    return [
+        tx for tx in transactions if phone in str(tx.get("description", ""))
+    ]
+
+
+def search_person_transfers(
+    transactions: List[Dict], person: str
+) -> List[Dict]:
+    """Ищет переводы конкретному человеку"""
+    return [
+        tx for tx in transactions if person in str(tx.get("description", ""))
+    ]

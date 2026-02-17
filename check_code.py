@@ -1,108 +1,76 @@
-from datetime import datetime, timedelta
+import pandas as pd
 
-from src.reports import spending_by_category, spending_by_weekday
-from src.services import cashback_analysis, investment_bank
-from src.utils import load_operations
-from src.views import events_page, main_page, weekday_page
+from src.reports import spending_by_category
+from src.services import calculate_cashback, investment_bank
+from src.views import display_person_transfers, display_phone_transactions
 
+# Пример данных
+data = [
+    {
+        "date": "2021-12-31 16:44:00",
+        "amount": -160.89,
+        "category": "Супермаркеты",
+        "description": "Колхоз",
+        "card_last_digits": "7197",
+    },
+    {
+        "date": "2021-12-31 16:42:00",
+        "amount": -64.0,
+        "category": "Супермаркеты",
+        "description": "Колхоз",
+        "card_last_digits": "7197",
+    },
+    {
+        "date": "2021-12-31 16:39:00",
+        "amount": -118.12,
+        "category": "Супермаркеты",
+        "description": "Магнит",
+        "card_last_digits": "7197",
+    },
+    {
+        "date": "2021-12-31 15:44:00",
+        "amount": -78.05,
+        "category": "Супермаркеты",
+        "description": "Колхоз",
+        "card_last_digits": "7197",
+    },
+    {
+        "date": "2021-12-31 01:23:00",
+        "amount": -564.0,
+        "category": "Различные товары",
+        "description": "Ozon.ru",
+        "card_last_digits": "5091",
+    },
+]
 
-def check_excel() -> None:
-    """Проверка загрузки Excel."""
-    print("=== Проверка загрузки Excel ===")
-    df = load_operations()
-    print("Первые 5 строк данных:")
-    print(df.head())
-    print("Колонки:", list(df.columns))
-    print()
+df = pd.DataFrame(data)
+df["date"] = pd.to_datetime(df["date"])
 
+print("✅ Данные загружены и приведены к стандартной структуре:")
+print(df.head())
 
-def check_reports() -> None:
-    """Проверка reports.py."""
-    print("=== Проверка reports.py ===")
-    df = load_operations()
+# Кэшбэк
+transactions_list = df.to_dict("records")
+cashback_report = calculate_cashback(transactions_list)
+print("\n=== Cashback Analysis ===")
+print(cashback_report)
 
-    category = (
-        "Супермаркеты"
-        if "Супермаркеты" in df["Категория"].values
-        else df["Категория"].dropna().iloc[0]
-    )
+# Инвестиции
+investment = investment_bank(transactions_list, 12, 1000)
+print("\n=== Investment Bank ===")
+print(investment)
 
-    cat_report = spending_by_category(df, category)
-    print(f"Траты по категории '{category}':")
-    print(cat_report)
-    print()
+# Поиск транзакций по категории
+cat_report = spending_by_category(df, "Супермаркеты")
+print("\n=== Spending by Category ===")
+print(cat_report)
 
-    weekday_report = spending_by_weekday(df)
-    print("Средние траты по дням недели:")
-    print(weekday_report)
-    print()
+# Поиск по телефонам
+phone_report = display_phone_transactions(transactions_list, "+7 921 11-22-33")
+print("\n=== Search Phone Numbers ===")
+print(phone_report)
 
-
-def check_services() -> None:
-    """Проверка services.py."""
-    print("=== Проверка services.py ===")
-    df = load_operations()
-
-    start_date = datetime.now() - timedelta(days=90)
-
-    recent_transactions = [
-        {
-            "amount": float(row["Сумма операции"]),
-            "cashback": float(
-                row.get("Бонусы (включая кэшбэк)", 0.0)
-            ),
-            "rounding": float(
-                row.get("Округление на инвесткопилку", 0.0)
-            ),
-            "category": str(
-                row.get("Категория", "Другое")
-            ),
-        }
-        for _, row in df.iterrows()
-        if row["Дата операции"] >= start_date
-    ]
-
-    cashback_result = cashback_analysis(recent_transactions)
-    print("Кэшбэк по категориям за последние 3 месяца:")
-    print(cashback_result)
-    print()
-
-    total_invest = investment_bank(recent_transactions)
-    print(
-        "Сумма округлений на инвесткопилку за последние 3 месяца:",
-        total_invest,
-    )
-    print()
-
-
-def check_views() -> None:
-    """Проверка views.py."""
-    print("=== Проверка views.py ===")
-    print("Главная страница JSON:")
-    print(main_page())
-    print()
-
-    df = load_operations()
-
-    category = (
-        "Супермаркеты"
-        if "Супермаркеты" in df["Категория"].values
-        else df["Категория"].dropna().iloc[0]
-    )
-
-    cat_page = events_page(df, category)
-    print("Отчет по категории через views:")
-    print(cat_page)
-    print()
-
-    weekday_page_report = weekday_page(df)
-    print("Средние траты по дням недели через views:")
-    print(weekday_page_report)
-    print()
-
-
-if __name__ == "__main__":
-    check_excel()
-    check_reports()
-    check_services()
-    check_views()
+# Поиск переводов конкретным людям
+person_report = display_person_transfers(transactions_list, "Колхоз")
+print("\n=== Search Person Transfers ===")
+print(person_report)
