@@ -17,20 +17,59 @@
   - по конкретному получателю перевода.
 - Актуальные курсы валют и цены акций (для отображения на дашборде).
 
-## Установка
+### 1. Декоратор для отчетов
 
-```bash
-git clone <URL_REPO>
-cd course_paper_1
-python -m venv .venv
-source .venv/bin/activate  # MacOS/Linux
-# .venv\Scripts\activate  # Windows
-pip install -r requirements.txt
+Добавлен универсальный декоратор `@report_logger`  
+Файл: `src/decorators.py`
 
-Запуск
+Он:
+- логирует начало выполнения отчета
+- логирует завершение выполнения отчета
+- используется во всех функциях из `src/reports.py`
 
--- Проверка работы скрипта:python check_code.py
--- Запуск тестов: PYTHONPATH=src pytest -v
+Это позволяет централизованно отслеживать выполнение аналитических функций.
+
+
+### 2. Веб-страница (Flask API)
+
+Реализовано веб-приложение на Flask:
+
+Файл: `app.py`в корне проекта. Запуск: poetry run python app.py
+
+Доступные эндпоинты:
+
+- `/` — проверка работоспособности API
+- `/main?date=YYYY-MM-DD HH:MM:SS` — главная страница
+- `/events?date=YYYY-MM-DD HH:MM:SS` — отчёт по событиям
+
+Приложение будет доступно по адресу:
+
+http://127.0.0.1:5001/
+
+Available endpoints
+
+Health check:
+http://127.0.0.1:5001/
+
+Main page:
+http://127.0.0.1:5001/main?date=2021-09-01 12:00:00 - копировать полностью вместе с 12:00:00
+
+Events report:
+
+http://127.0.0.1:5001/events?date=2021-09-01 12:00:00  - копировать полностью вместе с 12:00:00
+
+
+Таким образом проект теперь включает:
+- аналитику
+- декоратор для отчетов
+- веб-интерфейс
+
+
+## Запуск
+
+-- Проверка работы скрипта: poetry run python app.py
+-- Запуск тестов: PYTHONPATH=$(pwd) poetry run pytest -v tests
+
 
 Структура проекта
 course_paper_1/
@@ -40,16 +79,20 @@ course_paper_1/
  ---reports     
 ├── src/
     __ init __.py
-│   ├── services.py # Основная логика работы с транзакциями
+----decorators.py
+----load_transactions.py
+│   ├── services.py          # Основная логика работы с транзакциями
 │   ├── reports.py           # Формирование отчетов
 │   └── views.py             # Представления данных
     ----utils.py
 ├── tests/
   --__init__.py
+ ---test_app.py
 │   ├── test_services.py
 │   ├── test_reports.py
 │   └── test_views.py
-├── check_code.py            # Скрипт для демонстрации работы функций
+├── app.py
+    check_code.py            # Скрипт для демонстрации работы функций
 ├── README.md
 └── .flake8
     .gitignore
@@ -58,7 +101,7 @@ course_paper_1/
     {} user_settings.json
 
 Тесты
-============ 9 passed in 0.38s =========
+======= 11 passed in 0.46s ====
 Все функции протестированы с помощью pytest.
 
 Проверка типов с помощью mypy.
@@ -67,3 +110,11 @@ course_paper_1/
 *Примечания
 Кешбэк рассчитывается только на расходные операции.
 Для корректной работы аналитики рекомендуется использовать pandas версии ≥ 2.0.
+
+Финальный прогон проекта:
+
+PYTHONPATH=$(pwd) poetry run isort src tests app.py && \
+poetry run black src tests app.py && \
+poetry run flake8 src tests app.py && \
+poetry run mypy src app.py tests && \
+poetry run pytest
