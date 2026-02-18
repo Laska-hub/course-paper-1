@@ -1,0 +1,8 @@
+{
+  "username": "default_user",
+  "theme": "light",
+  "language": "ru",
+  "reports_path": "data/reports/",
+  "default_category": "Продукты",
+  "currency": "RUB"
+}
